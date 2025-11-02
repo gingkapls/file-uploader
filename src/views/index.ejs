@@ -6,6 +6,12 @@
     <title>Drive</title>
   </head>
   <body>
-    Welcome 
+    <h1>Bootleg Drive</h1>
+    <% if (locals?.user) { %>
+      Welcome <%= user.username %>
+      <a href="/logout">Log out</a>
+    <% } else { %>
+      <%- include('partials/login-form') %>
+    <% } %>
   </body>
 </html>
