@@ -5,6 +5,8 @@ import { compare } from "bcrypt";
 
 export const strat = new LocalStrategy(async (username, password, done) => {
   const user = await User.findByUsername({ username });
+  
+  console.log('authing', {user})
 
   // Incorrect username
   if (user === null)
@@ -15,6 +17,17 @@ export const strat = new LocalStrategy(async (username, password, done) => {
   // Incorrect password
   if (!comparisonResult)
     return done(null, false, { message: "Username or password is incorrect" });
+
+  return done(null, user);
+});
+
+// Extracting the id and saving it into the session
+// @ts-expect-error Our user will always have an id
+passport.serializeUser((user, done) => done(null, user.id));
+
+// Retrieving and adding the user to the req
+passport.deserializeUser(async (id: number, done) => {
+  const user = await User.findById({ id });
 
   return done(null, user);
 });

@@ -1,9 +1,8 @@
-import { Request, RequestHandler, Response } from "express";
+import { RequestHandler } from "express";
 import { body, ValidationChain, validationResult } from "express-validator";
 import bcrypt from "bcrypt";
 import { User } from "../models/user.js";
-
-// const prisma = new PrismaClient();
+import { authMiddleware } from "../config/auth/auth.js";
 
 const validateUser: ValidationChain[] = [
   body("username").trim().escape().isLength({ min: 3, max: 25 }),
@@ -35,13 +34,17 @@ const signUpPostHandler: RequestHandler = async (req, res) => {
     },
   });
 
-  return res.render("/login", { username });
+  return res.render("/", { username });
 };
 
 const signUpPost = [...validateUser, signUpPostHandler];
 
-const loginPostHandler: RequestHandler = async (req, res) => {};
+const loginPost = [
+  ...validateUser,
+  authMiddleware.authenticate("local", {
+    successRedirect: "/",
+    failureRedirect: "/",
+  }),
+];
 
-const loginPost = [...validateUser, loginPostHandler];
-
-export { signUpGet, signUpPost };
+export { signUpGet, signUpPost, loginPost };

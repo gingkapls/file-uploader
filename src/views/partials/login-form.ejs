@@ -1,5 +1,8 @@
 <form action="/login" method="POST">
 <h4>Log in</h4>
+<% locals?.errors?.forEach(error => { %>
+  <li><%= console.log(error) %></li>
+<% }) %>
   <label>
     <input type="text" name="username" />
   </label>
