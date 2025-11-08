@@ -1,4 +1,4 @@
-import "dotenv/config";
+import "./utils/loadEnv.js";
 import express, { urlencoded } from "express";
 import { indexRouter } from "./routes/index.js";
 import { resolve } from "node:path";
