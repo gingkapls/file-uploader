@@ -10,6 +10,7 @@
     <% if (locals?.user) { %>
       Welcome <%= user.username %>
       <a href="/logout">Log out</a>
+      <%- include('partials/upload-form') %>
     <% } else { %>
       <%- include('partials/login-form', { errors: locals?.errors }) %>
       <a href='/sign-up'>Sign up</a>

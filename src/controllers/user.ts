@@ -47,4 +47,12 @@ const loginPost = [
   }),
 ];
 
-export { signUpGet, signUpPost, loginPost };
+const isAuthenticated: RequestHandler = (req, res, next) => {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+
+  res.render("index", { errors: [{ message: "User not logged in" }] });
+};
+
+export { signUpGet, signUpPost, loginPost, isAuthenticated };

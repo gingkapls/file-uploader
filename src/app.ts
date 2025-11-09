@@ -5,7 +5,8 @@ import { resolve } from "node:path";
 import { authRouter } from "./routes/user.js";
 import { sessionWare } from "./config/auth/session.js";
 import { authMiddleware } from "./config/auth/auth.js";
-import { loginPost } from "./controllers/user.js";
+import { isAuthenticated, loginPost } from "./controllers/user.js";
+import { fileRouter } from "./routes/file.js";
 
 const app = express();
 const PORT = 8080;
@@ -36,6 +37,11 @@ app.get("/logout", (req, res, next) =>
 
     res.redirect("/");
   })
+);
+app.use(
+  "/drive",
+  isAuthenticated,
+  fileRouter
 );
 
 app.listen(PORT, () => {

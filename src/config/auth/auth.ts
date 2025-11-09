@@ -5,8 +5,6 @@ import { compare } from "bcrypt";
 
 export const strat = new LocalStrategy(async (username, password, done) => {
   const user = await User.findByUsername({ username });
-  
-  console.log('authing', {user})
 
   // Incorrect username
   if (user === null)
