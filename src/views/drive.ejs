@@ -10,7 +10,7 @@
       Welcome <%= user.username %>
       <a href="/logout">Log out</a>
 <ul>
-<%- include('partials/upload-form') %>
+<%- include('partials/upload-form', { parentId } ) %>
 <%- include('partials/create-folder-form', { parentId }) %>
 <% locals.files.forEach(file => { %>
     <% if (file.type === 'DIR') { %>

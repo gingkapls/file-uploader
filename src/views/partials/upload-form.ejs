@@ -1,4 +1,5 @@
 <form action="/drive/upload" method="POST" enctype="multipart/form-data">
+<input name="parentId" type="hidden" value="<%= locals.parentId %>">
   <label>
     Upload file
     <input name="uploaded_file" type="file" />
