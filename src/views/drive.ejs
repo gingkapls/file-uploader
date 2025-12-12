@@ -14,9 +14,9 @@
 <%- include('partials/create-folder-form', { parentId }) %>
 <% locals.files.forEach(file => { %>
     <% if (file.type === 'DIR') { %>
-        <li><a href="<%= `/drive/${file.id}` %>"><%= file.name %></a></li>
+        <li>Folder: <a href="<%= `/drive/${file.id}` %>"><%= file.name %></a></li>
     <% } else { %>
-        <li><a href="<%= `/drive/download/${file.id}` %>"><%= file.name %></a></li>
+        <li>File <a href="<%= `/drive/download/${file.id}` %>"><%= file.name %></a></li>
     <% } %>
 <% }) %>
 </ul>
