@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { File } from "../models/file.js";
 import {
+    createFolder,
     downloadSingleFile,
     getFolderContents,
     uploadSingleFile,
@@ -12,16 +12,7 @@ fileRouter.get("/download/{:id}", downloadSingleFile);
 
 fileRouter.post("/upload", uploadSingleFile);
 
-fileRouter.post("/folder/create", async (req, res, next) => {
-    if (!req.user) return next(new Error("User not found"));
-
-    const ownerId = req.user.id;
-    const { name } = req.body;
-    const parentId = req.body.parentId || undefined;
-
-    const { id } =  await File.createFolder({ ownerId, name, parentId });
-    return res.redirect(`/drive/${id}`);
-});
+fileRouter.post("/folder/create", createFolder);
 fileRouter.get("/download/:id", downloadSingleFile);
 
 export { fileRouter };

@@ -28,7 +28,6 @@ model File {
   id           String        @id @default(uuid()) @db.Uuid
   name         String
   ownerId      Int
-  path         String?
   type         MIME_TYPE
   parentId     String?       @db.Uuid
   owner        User          @relation(fields: [ownerId], references: [id])

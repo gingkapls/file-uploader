@@ -6,7 +6,6 @@ import { db } from "../utils/db.js";
 
 interface FileCreateArgs {
     name: string;
-    path: string;
     ownerId: number;
     parentId?: string;
 }
@@ -41,7 +40,7 @@ export class File {
         name,
         parentId,
         ownerId,
-    }: Omit<FileCreateArgs, "path">) {
+    }: FileCreateArgs) {
         return this.#db.create({ data: { name, type: "DIR", ownerId, parentId } });
     }
 
@@ -58,9 +57,9 @@ export class File {
     }
 
     // Files
-    static async createFile({ name, parentId, ownerId, path }: FileCreateArgs) {
+    static async createFile({ name, parentId, ownerId }: FileCreateArgs) {
         return this.#db.create({
-            data: { name, type: "FILE", ownerId, path, parentId },
+            data: { name, type: "FILE", ownerId, parentId },
         });
     }
 

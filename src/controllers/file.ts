@@ -2,6 +2,8 @@ import { NextFunction, Request, RequestHandler, Response } from "express";
 import { upload } from "../config/storage/upload.js";
 import { File } from "../models/file.js";
 import path from "node:path";
+import { supabase } from "../utils/db.js";
+import { unlink } from "node:fs/promises";
 
 const uploadSingleFile = [
     upload.single("uploaded_file"),
@@ -13,19 +15,42 @@ const uploadSingleFile = [
         const name = req.file.filename;
         const destination = req.file.destination;
         const parentId = req.body.parentId || undefined;
-
-
         const ownerId = req.user.id;
+        const username = req.user.username;
+
         console.log({ name, destination, parentId, ownerId });
-        await File.createFile({
-            name: originalname,
-            parentId,
-            ownerId,
-            path: destination + "/" + name,
-        });
-        return res.redirect("/drive");
+        const path = destination + "/" + name;
+
+        const { data, error } = await supabase.storage.from(username).upload(path, req.file.buffer);
+
+        if (!error) {
+            await File.createFile({
+                name: originalname,
+                parentId,
+                ownerId,
+            });
+            return res.redirect("/drive");
+        }
+
+        console.log("uploaded file", data);
+
+        // Deleting the file from disk
+        await unlink(req.file.path)
+
+        return res.render("drive", { error });
     },
 ];
+
+const createFolder: RequestHandler = async (req, res, next) => {
+    if (!req.user) return next(new Error("User not found"));
+
+    const ownerId = req.user.id;
+    const { name } = req.body;
+    const parentId = req.body.parentId || undefined;
+
+    const { id } = await File.createFolder({ ownerId, name, parentId });
+    return res.redirect(`/drive/${id}`);
+};
 
 const getFolderContents: RequestHandler = async (req, res, next) => {
     if (!req.user) return next(new Error("No user found"));
@@ -70,4 +95,4 @@ const downloadSingleFile: RequestHandler = async (req, res, next) => {
     return res.sendFile(path.join(import.meta.dirname, "../../" + file.path!));
 };
 
-export { uploadSingleFile, getFolderContents, downloadSingleFile };
+export { uploadSingleFile, createFolder, getFolderContents, downloadSingleFile };
