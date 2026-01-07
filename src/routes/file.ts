@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
     createFolder,
+    deleteResource,
     downloadSingleFile,
     getFolderContents,
     uploadSingleFile,
@@ -14,5 +15,7 @@ fileRouter.post("/upload", uploadSingleFile);
 
 fileRouter.post("/folder/create", createFolder);
 fileRouter.get("/download/:id", downloadSingleFile);
+
+fileRouter.post("/:id/delete", deleteResource);
 
 export { fileRouter };

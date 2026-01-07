@@ -10,14 +10,18 @@
       Welcome <%= user.username %>
       <a href="/logout">Log out</a>
 <ul>
+<h3><%= locals.folderName %></h3>
 <%- include('partials/upload-form', { parentId } ) %>
 <%- include('partials/create-folder-form', { parentId }) %>
 <% locals.files.forEach(file => { %>
+<li>
     <% if (file.type === 'DIR') { %>
-        <li>Folder: <a href="<%= `/drive/${file.id}` %>"><%= file.name %></a></li>
+        Folder: <a href="<%= `/drive/${file.id}` %>"><%= file.name %></a>
     <% } else { %>
-        <li>File <a href="<%= `/drive/download/${file.id}` %>"><%= file.name %></a></li>
+        File <a href="<%= `/drive/download/${file.id}` %>"><%= file.name %></a>
     <% } %>
+    <form action="<%= `/drive/${file.id}/delete` %>" method="POST"><button type="submit">Delete</button></form>
+    </li>
 <% }) %>
 </ul>
 </body>

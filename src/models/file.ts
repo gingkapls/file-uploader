@@ -72,4 +72,14 @@ export class File {
     }) {
         return this.#db.delete({ where: { id, ownerId } });
     }
+
+    static async deleteFilesById({
+        ids,
+        ownerId,
+    }: {
+        ids: string[];
+        ownerId: number;
+    }) {
+        return this.#db.deleteMany({ where: { id: { in: ids }, ownerId } });
+    }
 }

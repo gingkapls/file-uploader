@@ -1,7 +1,6 @@
 import { NextFunction, Request, RequestHandler, Response } from "express";
 import { upload } from "../config/storage/upload.js";
 import { File } from "../models/file.js";
-import path from "node:path";
 import { supabase } from "../utils/db.js";
 import { readFile, unlink } from "node:fs/promises";
 
@@ -29,8 +28,8 @@ const uploadSingleFile = [
             .from(ownerId.toString())
             .upload(id, file, { contentType: req.file.mimetype });
 
-        console.log('db: ', { id, name, destination, parentId, ownerId });
-        console.log("uploaded file", data);
+        // console.log('db: ', { id, name, destination, parentId, ownerId });
+        // console.log("uploaded file", data);
 
         if (error) {
             return res.render("drive", { error });
@@ -66,15 +65,17 @@ const getFolderContents: RequestHandler = async (req, res, next) => {
         ownerId,
     });
 
+    const folder = parentId ? await File.getFileById({ id: parentId, ownerId }) : { name: "Drive" };
+
     try {
         const allChildren = await File.getAllChildrenByParentId({ parentId, ownerId });
-        console.log(allChildren);
+        // console.log(allChildren);
     } catch (e) {
         console.error('error', e)
         console.error(parentId, ownerId)
     }
 
-    return res.render("drive", { files, parentId });
+    return res.render("drive", { files, parentId, folderName: folder?.name });
 };
 
 const downloadSingleFile: RequestHandler = async (req, res, next) => {
@@ -97,14 +98,75 @@ const downloadSingleFile: RequestHandler = async (req, res, next) => {
     // TODO: Add downloading
     const path = `${ownerId}/${id}`;
 
-    console.log('path', path);
     const { data, error } = await supabase.storage.from(ownerId.toString()).createSignedUrl(id, 60);
-
-    console.log(data);
 
     if (error) return res.status(400).send(error);
 
     return res.status((200)).redirect(data.signedUrl);
 };
 
-export { uploadSingleFile, createFolder, getFolderContents, downloadSingleFile };
+const deleteFile: RequestHandler = async (req, res, next) => {
+    if (!req.user) return next(new Error("No user found"));
+
+    const { id } = req.params;
+    const ownerId = req.user.id;
+
+    try {
+        const file = await File.deleteFileById({ id, ownerId });
+        const { data, error } = await supabase.storage.from(ownerId.toString()).remove([id]);
+        console.log('deleted', { file, data, error });
+        res.redirect('/drive');
+    } catch (e) {
+        return next(e);
+    }
+}
+
+const deleteFolder: RequestHandler = async (req, res, next) => {
+    if (!req.user) return next(new Error("No user found"));
+
+    const { id: parentId } = req.params;
+    const ownerId = req.user.id;
+
+    try {
+        const children = await File.getAllChildrenByParentId({ parentId, ownerId });
+
+        const allIds = children
+            .map(({ id, type }) => ({ id, type }))
+            .filter((p): p is { id: string, type: "DIR" | "FILE" } => p.id !== null && p.type !== null);
+
+        const fileIds = allIds
+            .filter((child) => child.type === "FILE")
+            .map(c => c.id)
+
+        await File.deleteFilesById({ ids: allIds.map(child => child.id).concat(parentId), ownerId })
+
+        const { data, error } = await supabase.storage.from(ownerId.toString()).remove(fileIds);
+
+        console.log('deleted', { data, error });
+        res.redirect('/drive');
+    } catch (e) {
+        return next(e);
+    }
+}
+
+const deleteResource: RequestHandler = async (req, res, next) => {
+    if (!req.user) return next(new Error("No user found"));
+
+    const { id: parentId } = req.params;
+    const ownerId = req.user.id;
+
+    try {
+        const file = await File.getFileById({ id: parentId, ownerId });
+        if (file === null) throw new Error("File not found")
+
+        if (file.type === "FILE") {
+            return deleteFile(req, res, next);
+        } else if (file.type === "DIR") {
+            return deleteFolder(req, res, next);
+        }
+    } catch (e) {
+        return next(e);
+    }
+}
+
+export { uploadSingleFile, createFolder, getFolderContents, downloadSingleFile, deleteResource };
